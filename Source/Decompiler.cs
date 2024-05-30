@@ -120,7 +120,8 @@ namespace TranspilerExplorer
             var def = dmd.Definition;
             var module = typeDef.Module;
 
-            Relinker relinker = (mtp, ctx) => {
+            Relinker relinker = (mtp, ctx) =>
+            {
                 return module.ImportReference(mtp);
             };
 

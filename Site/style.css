@@ -1,46 +1,46 @@
 code[class*="language-"],
 pre[class*="language-"] {
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.8rem;
 }
 
 body {
-    background-color: #2d2d2d;
-    color: #ccc;
-    margin: 30px;
+  background-color: #2d2d2d;
+  color: #ccc;
+  margin: 30px;
 }
 
 p {
-    margin: 8px 0 8px 0;
+  margin: 8px 0 8px 0;
 }
 
 .selector {
-    margin: 10px;
+  margin: 10px;
 }
 
 .main {
-    background-color: #1d1d1d;
-    padding: 5px;
+  background-color: #1d1d1d;
+  padding: 5px;
 }
 
 .tabs {
-    display: flex;
+  display: flex;
 }
 
-.code-tab{
-    width: 50%;
-    padding: 2px;
+.code-tab {
+  width: 50%;
+  padding: 2px;
 }
 
-#code1pre .line-highlight{
-    background: rgba(255, 0, 0, 0.1);
+#code1pre .line-highlight {
+  background: rgba(255, 0, 0, 0.1);
 }
 
-#code2pre .line-highlight{
-    background: rgba(0, 255, 0, 0.05);
+#code2pre .line-highlight {
+  background: rgba(0, 255, 0, 0.05);
 }
 
 .grayline {
-    background: rgba(100, 100, 100, 0.1) !important;
+  background: rgba(100, 100, 100, 0.1) !important;
 }

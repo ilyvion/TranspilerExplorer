@@ -1,33 +1,34 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-	  <LangVersion>preview</LangVersion>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <OutputPath>..\Assemblies\</OutputPath>
-    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-    <DebugType>None</DebugType>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+        <OutputPath>..\Assemblies\</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        <DebugType>None</DebugType>
+    </PropertyGroup>
 
-  <ItemGroup>
+    <ItemGroup>
 
-    <!-- Nuget dependencies -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" ExcludeAssets="runtime" />
-    <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543" ExcludeAssets="runtime" />
-    <PackageReference Include="Krafs.Publicizer" Version="2.0.1" />
-    <PackageReference Include="Lib.Harmony" Version="2.3.1.1" ExcludeAssets="runtime" />
-    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.5.4042-beta" />
+        <!-- Nuget dependencies -->
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" ExcludeAssets="runtime" />
+        <PackageReference Include="ICSharpCode.Decompiler" Version="7.1.0.6543"
+            ExcludeAssets="runtime" />
+        <PackageReference Include="Krafs.Publicizer" Version="2.0.1" />
+        <PackageReference Include="Lib.Harmony" Version="2.3.1.1" ExcludeAssets="runtime" />
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.5.*" />
 
-  </ItemGroup>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Publicize Include="Assembly-CSharp;0Harmony;" />
-  </ItemGroup>
+    <ItemGroup>
+        <Publicize Include="Assembly-CSharp;0Harmony;" />
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Remove=".editorconfig" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Remove=".editorconfig" />
+    </ItemGroup>
 
 </Project>

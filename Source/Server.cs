@@ -77,7 +77,8 @@ namespace TranspilerExplorer
                     },
                     _ => false
                 };
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 ctx.Response.StatusCode = 500;
                 ctx.Response.WriteJson(JObject.FromObject(new { exception = e.ToString() }));
@@ -96,7 +97,7 @@ namespace TranspilerExplorer
             }
 
             ctx.Response.WriteBytes(File.ReadAllBytes(path));
-            
+
             return true;
         }
 
@@ -112,14 +113,15 @@ namespace TranspilerExplorer
                 list.Add((e.Item1, e.Item2, true));
 
             ctx.Response.WriteJson(JObject.FromObject(new
-                {
-                    transpilers = from p in list select new
-                    {
-                        original = $"{p.o.DeclaringType?.FullDescription()}::{p.o.Name}",
-                        transpiler = $"{p.t.DeclaringType?.FullDescription()}::{p.t.Name}",
-                        erroring = p.err
-                    }
-                }
+            {
+                transpilers = from p in list
+                              select new
+                              {
+                                  original = $"{p.o.DeclaringType?.FullDescription()}::{p.o.Name}",
+                                  transpiler = $"{p.t.DeclaringType?.FullDescription()}::{p.t.Name}",
+                                  erroring = p.err
+                              }
+            }
             ));
 
             return true;
