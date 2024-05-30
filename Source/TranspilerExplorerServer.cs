@@ -6,17 +6,33 @@ namespace TranspilerExplorer
 {
     public class TranspilerExplorerServer
     {
-        readonly Server server;
+        private string sitePath;
+        private Server server;
+        private Thread serverThread;
 
         public TranspilerExplorerServer(ModContentPack content)
         {
-            var sitePath = Path.Combine(content.RootDir, "Site");
+            sitePath = Path.Combine(content.RootDir, "Site");
+            StartServer(TranspilerExplorerMod.settings.port);
+        }
+
+        public void StartServer(int port)
+        {
             server = new Server(
-                TranspilerExplorerMod.settings.port,
+                port,
                 sitePath
             );
 
-            new Thread(server.Start).Start();
+            serverThread = new Thread(server.Start);
+            serverThread.Start();
+        }
+
+        public void ChangePort(int port)
+        {
+            server.Stop();
+            serverThread.Join();
+
+            StartServer(TranspilerExplorerMod.settings.port);
         }
     }
 }

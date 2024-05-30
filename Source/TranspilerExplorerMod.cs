@@ -38,9 +38,15 @@ namespace TranspilerExplorer
         {
             var listing = new Listing_Standard();
             listing.Begin(inRect);
-            listing.ColumnWidth = 220f;
+            listing.verticalSpacing = 5f;
 
-            listing.TextFieldNumericLabeled("Port (requires restart): ", ref settings.port, ref portBuffer, 0, ushort.MaxValue);
+            listing.TextFieldNumericLabeled("Port: ", ref settings.port, ref portBuffer, 0, ushort.MaxValue);
+
+            if (listing.ButtonText("Restart server (required to use a new port)"))
+            {
+                WriteSettings();
+                server.ChangePort(settings.port);
+            }
 
             listing.End();
         }

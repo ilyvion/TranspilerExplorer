@@ -44,6 +44,12 @@ namespace TranspilerExplorer
             listener.Close();
         }
 
+        public void Stop()
+        {
+            running = false;
+            listener.Close();
+        }
+
         private void HandleRequests()
         {
             while (running)
