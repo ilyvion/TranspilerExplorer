@@ -17,8 +17,9 @@
     </li>
   </modDependencies>
   <loadAfter>
-    <li>Ludeon.RimWorld</li>
-    <li>Ludeon.RimWorld.Royalty</li>
     <li>brrainz.harmony</li>
   </loadAfter>
+  <loadBefore>
+    <li>Ludeon.RimWorld</li>
+  </loadBefore>
 </ModMetaData>

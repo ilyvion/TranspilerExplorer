@@ -287,8 +287,23 @@
         for (var tr of json["transpilers"]) {
             createOption(
                 select,
-                index,
-                `${tr["transpiler"]} on ${tr["original"]} ${tr.erroring ? " (Erroring)" : ""}`,
+                `tr-${index}`,
+                `${tr["transpiler"]} on ${tr["original"]} ${
+                    tr.erroring ? " (Erroring)" : ""
+                }`,
+            );
+            index++;
+        }
+        index = 0;
+        for (var rev of json["reverseTranspiled"]) {
+            createOption(
+                select,
+                `rev-${index}`,
+                `${rev["reverse"]} from ${
+                    rev["original"]
+                } (Reverse patch w/transpiler)${
+                    rev.erroring ? " (Erroring)" : ""
+                }`,
             );
             index++;
         }

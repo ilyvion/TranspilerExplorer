@@ -48,6 +48,12 @@ namespace TranspilerExplorer
                 AccessTools.Method("HarmonyLib.PatchFunctions:UpdateWrapper"),
                 finalizer: new HarmonyMethod(AccessTools.Method(typeof(HarmonyPatch_UpdateWrapper_Patch), "Finalizer"))
             );
+            harmony.Patch(
+                AccessTools.Method("HarmonyLib.PatchFunctions:ReversePatch"),
+                finalizer: new HarmonyMethod(AccessTools.Method(
+                    typeof(HarmonyPatch_Register_ReversePatches_Patch),
+                    nameof(HarmonyPatch_Register_ReversePatches_Patch.Finalizer)))
+            );
         }
 
         private string portBuffer;

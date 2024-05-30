@@ -23,7 +23,8 @@ namespace TranspilerExplorer
 
         private int port;
         private string contentFolder;
-        private List<(MethodBase o, MethodInfo t, bool err)> list;
+        private List<(MethodBase o, MethodInfo t, bool err)> transpilerList;
+        private List<(MethodBase o, MethodInfo s, MethodInfo t, bool err)> reverseTranspiledList;
         private Dictionary<MethodBase, string[]> variableNames = new Dictionary<MethodBase, string[]>();
 
         public Server(int port, string contentFolder)
@@ -103,61 +104,103 @@ namespace TranspilerExplorer
 
         private bool ServeNewList(HttpListenerContext ctx)
         {
-            list = new();
+            transpilerList = new();
 
             foreach (var m in Harmony.GetAllPatchedMethods())
                 foreach (var tr in Harmony.GetPatchInfo(m).Transpilers)
-                    list.Add((m, tr.PatchMethod, false));
+                    transpilerList.Add((m, tr.PatchMethod, false));
 
             foreach (var e in HarmonyPatch_UpdateWrapper_Patch.erroringTranspilers)
-                list.Add((e.Item1, e.Item2, true));
+                transpilerList.Add((e.Item1, e.Item2, true));
+
+            reverseTranspiledList = [];
+            foreach (var (original, standin, transpiler, erroring) in HarmonyPatch_Register_ReversePatches_Patch.reverseTranspilers)
+                reverseTranspiledList.Add((original, standin, transpiler, erroring));
 
             ctx.Response.WriteJson(JObject.FromObject(new
             {
-                transpilers = from p in list
+                transpilers = from p in transpilerList
                               select new
                               {
                                   original = $"{p.o.DeclaringType?.FullDescription()}::{p.o.Name}",
                                   transpiler = $"{p.t.DeclaringType?.FullDescription()}::{p.t.Name}",
                                   erroring = p.err
-                              }
+                              },
+                reverseTranspiled = from p in reverseTranspiledList
+                                    select new
+                                    {
+                                        original = $"{p.o.DeclaringType?.FullDescription()}::{p.o.Name}",
+                                        reverse = $"{p.s.DeclaringType?.FullDescription()}::{p.s.Name}",
+                                        erroring = p.err,
+                                    }
             }
             ));
 
             return true;
         }
 
-        private bool ServeCode(HttpListenerContext ctx, Func<MethodBase, MethodInfo, string> processor)
+        private bool ServeCode(HttpListenerContext ctx, Func<MethodBase, MethodInfo, MethodInfo, string> processor)
         {
-            if (!int.TryParse(ctx.Request.Url.PathPart(1), out var transpilerId))
+            string idPathPart = ctx.Request.Url.PathPart(1);
+            string idKind = idPathPart.Substring(0, idPathPart.IndexOf('-'));
+            if (!int.TryParse(idPathPart.Substring(idPathPart.IndexOf('-') + 1), out var id))
                 return false;
 
-            var type = ctx.Request.Url.PathPart(2);
-            var tr = list[transpilerId];
-            string code;
-
-            try
+            switch (idKind)
             {
-                code = processor(tr.o, type == "original" ? null : tr.t);
+                case "tr":
+                    var type = ctx.Request.Url.PathPart(2);
+                    var tr = transpilerList[id];
+                    string code;
+
+                    try
+                    {
+                        code = processor(tr.o, null, type == "original" ? null : tr.t);
+                    }
+                    catch (Exception e)
+                    {
+                        ctx.Response.StatusCode = 500;
+                        ctx.Response.WriteJson(JObject.FromObject(new { exception = e.ToString() }));
+
+                        return false;
+                    }
+
+                    ctx.Response.WriteJson(JObject.FromObject(new { code }));
+
+                    return true;
+
+                case "rev":
+                    type = ctx.Request.Url.PathPart(2);
+                    var rev = reverseTranspiledList[id];
+
+                    try
+                    {
+                        code = processor(rev.o, type == "original" ? null : rev.s, type == "original" ? null : rev.t);
+                    }
+                    catch (Exception e)
+                    {
+                        ctx.Response.StatusCode = 500;
+                        ctx.Response.WriteJson(JObject.FromObject(new { exception = e.ToString() }));
+
+                        return false;
+                    }
+
+                    ctx.Response.WriteJson(JObject.FromObject(new { code }));
+
+                    return true;
+
+                default:
+                    ctx.Response.StatusCode = 400;
+                    ctx.Response.WriteJson(JObject.FromObject(new { exception = "Invalid id" }));
+                    return false;
             }
-            catch (Exception e)
-            {
-                ctx.Response.StatusCode = 500;
-                ctx.Response.WriteJson(JObject.FromObject(new { exception = e.ToString() }));
-
-                return false;
-            }
-
-            ctx.Response.WriteJson(JObject.FromObject(new { code }));
-
-            return true;
         }
 
-        private string DecompileWithPostProcessing(MethodBase orig, MethodInfo transpiler)
+        private string DecompileWithPostProcessing(MethodBase orig, MethodInfo standin, MethodInfo transpiler)
         {
             // If getting the original code, save the variable names assigned by the decompiler
             if (transpiler == null)
-                return Decompiler.Decompile(orig, transpiler, d =>
+                return Decompiler.Decompile(orig, standin, transpiler, d =>
                 {
                     variableNames[orig] = VariableNames.CollectVarNames(d);
                 }, null);
@@ -171,7 +214,7 @@ namespace TranspilerExplorer
             var namesCopy = names?.Select(s => s == null ? null : (s + appended)).ToArray();
 
             return
-                Decompiler.Decompile(orig, transpiler, null, new VariableNameProvider(namesCopy))
+                Decompiler.Decompile(orig, standin, transpiler, null, new VariableNameProvider(namesCopy))
                 .Replace(appended, "");
         }
 

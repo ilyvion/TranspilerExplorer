@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using System.Threading;
 using UnityEngine;
+using Verse;
 
 namespace TranspilerExplorer
 {
@@ -28,10 +29,10 @@ namespace TranspilerExplorer
         const string DummyMethod = "Method";
         const string DummyDll = "decomp.dll";
 
-        public static string Decompile(MethodBase orig, MethodInfo transpiler, Action<DecompilerSettingsWrapper> postProcess, IDebugInfoProvider debugInfo)
+        public static string Decompile(MethodBase orig, MethodInfo standin, MethodInfo transpiler, Action<DecompilerSettingsWrapper> postProcess, IDebugInfoProvider debugInfo)
         {
             using var stream = new MemoryStream();
-            WriteAssembly(stream, orig, transpiler);
+            WriteAssembly(stream, orig, standin, transpiler);
             stream.Position = 0;
 
             using var peFile = new PEFile(DummyDll, stream);
@@ -55,10 +56,10 @@ namespace TranspilerExplorer
             return code;
         }
 
-        public static string Disasm(MethodBase orig, MethodInfo transpiler)
+        public static string Disasm(MethodBase orig, MethodInfo standin, MethodInfo transpiler)
         {
             using var stream = new MemoryStream();
-            WriteAssembly(stream, orig, transpiler);
+            WriteAssembly(stream, orig, standin, transpiler);
             stream.Position = 0;
 
             using var peFile = new PEFile(DummyDll, stream);
@@ -72,9 +73,10 @@ namespace TranspilerExplorer
             return writer.ToString();
         }
 
-        static void WriteAssembly(Stream stream, MethodBase orig, MethodInfo transpiler)
+        static void WriteAssembly(Stream stream, MethodBase orig, MethodInfo standin, MethodInfo transpiler)
         {
-            var patch = MethodPatcher.CreateDynamicMethod(orig, DummyMethod, false);
+            var patch = MethodPatcher.CreateDynamicMethod(standin ?? orig, DummyMethod, false);
+            SubstituteStandinThisForBetterDiff();
             var il = patch.GetILGenerator();
             var originalVariables = MethodPatcher.DeclareOriginalLocalVariables(il, orig);
             var copier = new MethodCopier(orig, il, originalVariables);
@@ -112,6 +114,24 @@ namespace TranspilerExplorer
             GenerateCecilMethod(patch, typeDef);
 
             module.Write(stream);
+
+            void SubstituteStandinThisForBetterDiff()
+            {
+                if (standin != null && !orig.IsStatic)
+                {
+                    var standinThis = patch.Definition.Parameters[0];
+
+                    if (orig.DeclaringType.FullName == standinThis.ParameterType.FullName)
+                    {
+                        Log.Message("Setting standin's instance parameter's name to 'this' for better diff, original was '" + standinThis.Name + "'");
+                        standinThis.Name = "this";
+                    }
+                    else
+                    {
+                        Log.Warning("Expected first parameter of standin method to be the same as instance type (i.e. this) for an instance method patch.");
+                    }
+                }
+            }
         }
 
         // Copied from MonoMod.Utils.DMDCecilGenerator, edited to not load the assembly
