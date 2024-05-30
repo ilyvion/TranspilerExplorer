@@ -1,6 +1,6 @@
-### This project is archived. Continued as a Rider plugin at https://github.com/Zetrith/Remodder
-
 # TranspilerExplorer
+
+The project this one is based on is archived and is continued as a Rider plugin at https://github.com/Zetrith/Remodder.
 
 Decompile and browse code transpiled with Harmony (RW tool). To run it, clone the repo into your Mods folder. The mod starts a web interface available at (by default) http://localhost:8339.
 
